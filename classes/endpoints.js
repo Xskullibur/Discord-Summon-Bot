@@ -9,14 +9,15 @@ class GlobalApplicationEndpoint {
     constructor(appId) {
         this._appId = appId
         this._endpoints = `applications/${appId}`
+        Object.freeze(this)
     }
 
     allCommandsEndpoint() {
-        return this._endpoints += `/commands`
+        return `${this._endpoints}/commands`
     }
 
     singleCommandEndpoint(commandId) {
-        return this._endpoints += `/commands/${commandId}`
+        return `${this._endpoints}/commands/${commandId}`
     }
 }
 
@@ -29,11 +30,30 @@ class GuildApplicationEndpoint extends GlobalApplicationEndpoint {
     constructor(guildId, appId) {
         super(appId)
         this._guildId = guildId
-        this._endpoints += `/guilds/${guildId}`
+        Object.freeze(this)
+    }
+
+    get guildApplicationEndpoint() {
+        return `${this._guildId}/guilds/${this.guildId}`
+    }
+}
+
+class ChannelMessageEndpoint {
+    /**
+     * Endpoints that applies to all webhooks
+     */
+    constructor(channelId) {
+        this._channelId = channelId
+        Object.freeze(this)
+    }
+
+    get endpoint() {
+        return `channels/${this._channelId}/messages`
     }
 }
 
 export {
     GlobalApplicationEndpoint,
-    GuildApplicationEndpoint
+    GuildApplicationEndpoint,
+    ChannelMessageEndpoint
 }

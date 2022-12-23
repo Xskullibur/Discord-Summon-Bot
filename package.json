@@ -26,6 +26,7 @@
   },
   "homepage": "https://github.com/Xskullibur/Discord-Summon-Bot#readme",
   "devDependencies": {
+    "eslint": "^8.30.0",
     "nodemon": "^2.0.15"
   }
 }

@@ -1,5 +1,5 @@
-import { GlobalApplicationEndpoint } from "./classes/endpoints.js"
-import { DiscordRequest } from "./utils.js"
+import { ChannelMessageEndpoint, GlobalApplicationEndpoint } from './classes/endpoints.js'
+import { DiscordRequest } from './utils.js'
 
 // Update Commands
 export async function UpdateCommands(appId, commands) {
@@ -36,6 +36,7 @@ export async function UpdateCommands(appId, commands) {
     })
 }
 
+// Retrieve Existing Global Commands
 async function RetrieveGlobalCommands(appId) {
     // API endpoint to retrieve commands
     const endpoint = new GlobalApplicationEndpoint(appId)
@@ -51,7 +52,7 @@ async function RetrieveGlobalCommands(appId) {
     }
 }
 
-// Installs a command
+// Install specified command
 export async function InstallCommand(appId, command) {
 
     // API endpoint to delete command
@@ -66,7 +67,7 @@ export async function InstallCommand(appId, command) {
     }
 }
 
-// Deletes commands that does not exist
+// Delete specified command
 export async function DeleteCommand(appId, commandId) {
 
     // API endpoint to delete command
@@ -81,9 +82,52 @@ export async function DeleteCommand(appId, commandId) {
     }
 }
 
+// Summon User
+export async function MessageCommand(channelId, message) {
+    //  API endpoint to create a follow-up message
+    const endpoint = new ChannelMessageEndpoint(channelId)
+    const channelMessageEndpoint = endpoint.endpoint
+
+    // Request Body
+    const body = {
+        'content': message
+    }
+
+    // Mention specific user
+    try {
+        await DiscordRequest(channelMessageEndpoint, { method: 'POST', body })
+    } catch (err) {
+        console.error(err)
+    }
+}
+
 // Simple test command
 export const TEST_COMMAND = {
     name: 'test',
     description: 'Basic guild command',
     type: 1
+}
+
+export const SUMMON_COMMAND = {
+    name: 'summon',
+    description: 'Summon a user',
+    type: 1,
+    options: [{
+        name: 'user',
+        type: 6,
+        description: 'The user to summon',
+        required: true
+    }]
+}
+
+export const UNSUMMON_COMMAND = {
+    name: 'unsummon',
+    description: 'Unsummon a user',
+    type: 1,
+    options: [{
+        name: 'user',
+        type: 6,
+        description: 'The user to unsummon',
+        required: true
+    }]
 }
