@@ -9,6 +9,7 @@ import { VerifyDiscordRequest } from './utils.js'
 const summonDict = {}
 const app = express()
 const PORT = process.env.PORT || 3000
+
 app.use(express.json({
     verify: VerifyDiscordRequest(process.env.PUBLIC_KEY)
 }))
@@ -37,13 +38,62 @@ app.post('/interactions', async (req, res) => {
 
             case 'summon':
                 // Get Summoned User ID
-                handleSummonCommand(options, channel_id, res)
+                /**
+                * SUMMON COMMAND
+                */
+                var summoned_user = options[0].value
+
+                // Check if user is mentioned
+                if (!(summoned_user in summonDict)) {
+
+                    // Send a message into the channel where command was triggered from
+                    res.send({
+                        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+                        data: {
+                            content: `Summoning <@${summoned_user}>`,
+                        },
+                    })
+
+                    // Start summoning
+                    const intervalId = setInterval(() => {
+                        MessageCommand(channel_id, `<@${summoned_user}>`)
+                    }, 1000)
+
+                    // Add user to mention list
+                    summonDict[summoned_user] = intervalId
+                }
                 break
 
             case 'unsummon':
 
                 // Get Summoned User ID
-                return handleUnsummonCommand(options, res)
+                /**
+                * UNSUMMON COMMAND 
+                */
+                var summonedUser = options[0].value
+
+                // Check if user is mentioned
+                if (summonedUser in summonDict) {
+                    clearInterval(summonDict[summonedUser])
+                    delete summonDict[summonedUser]
+
+                    // Send a message into the channel where command was triggered from
+                    return res.send({
+                        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+                        data: {
+                            content: `Stopped Summoning <@${summonedUser}>`,
+                        },
+                    })
+                }
+                else {
+                    // Send a message into the channel where command was triggered from
+                    return res.send({
+                        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+                        data: {
+                            content: 'User was not summoned',
+                        },
+                    })
+                }
 
             default:
                 break
@@ -53,78 +103,8 @@ app.post('/interactions', async (req, res) => {
 
 })
 
-app.listen(PORT, () => {
-    console.log('Listening on port', PORT)
-    // Check if guild commands from commands.js are installed (if not, install them)
-    UpdateCommands(process.env.APP_ID, [
-        TEST_COMMAND,
-        SUMMON_COMMAND,
-        UNSUMMON_COMMAND
-    ])
-})
-
-function handleUnsummonCommand(options, res) {
-    /**
-     * UNSUMMON COMMAND
-     */
-    var summonedUser = options[0].value
-
-    // Check if user is mentioned
-    if (summonedUser in summonDict) {
-        clearInterval(summonDict[summonedUser])
-        delete summonDict[summonedUser]
-
-        // Send a message into the channel where command was triggered from
-        return res.send({
-            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-            data: {
-                content: `Stopped Summoning <@${summonedUser}>`,
-            },
-        })
-    }
-    else {
-        // Send a message into the channel where command was triggered from
-        return res.send({
-            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-            data: {
-                content: 'User was not summoned',
-            },
-        })
-    }
-}
-
-function handleSummonCommand(options, res, channel_id) {
-    /**
-     * SUMMON COMMAND
-     */
-    var summoned_user = options[0].value
-
-    // Check if user is mentioned
-    if (!(summoned_user in summonDict)) {
-
-        // Send a message into the channel where command was triggered from
-        res.send({
-            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-            data: {
-                content: `Summoning <@${summoned_user}>`,
-            },
-        })
-
-        // Start summoning
-        const intervalId = setInterval(() => {
-            MessageCommand(channel_id, `<@${summoned_user}>`)
-        }, 1000)
-
-        // Add user to mention list
-        summonDict[summoned_user] = intervalId
-        return
-    }
-}
-
+// Test Command
 function handleTestCommand(res) {
-    /**
-     * TEST COMMAND
-     */
     return res.send({
         // type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
         data: {
@@ -134,7 +114,31 @@ function handleTestCommand(res) {
     })
 }
 
+// Ping Command
 function handlePing(res) {
     return res.send({ type: InteractionResponseType.PONG })
 }
 
+// Listen to requests
+app.listen(PORT, () => {
+
+    // Verify Environment Variables
+    console.log('Verifying environment variables')
+    if (!process.env.APP_ID) {
+        throw new Error('Missing Application ID')
+    }
+    else if (!process.env.DISCORD_TOKEN) {
+        throw new Error('Missing Discord Token')
+    }
+    else if (!process.env.PUBLIC_KEY) {
+        throw new Error('Missing Public Key')
+    }
+    
+    // Check if guild commands from commands.js are installed (if not, install them)
+    console.log('Listening on port', PORT)
+    UpdateCommands(process.env.APP_ID, [
+        TEST_COMMAND,
+        SUMMON_COMMAND,
+        UNSUMMON_COMMAND
+    ])
+})

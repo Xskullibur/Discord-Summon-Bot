@@ -11,8 +11,8 @@
     "node-fetch": "^3.3.0"
   },
   "scripts": {
-    "start": "node app.js",
-    "dev": "nodemon app.js",
+    "start": "node index.js",
+    "dev": "nodemon index.js",
     "test": "npm test"
   },
   "repository": {

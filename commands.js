@@ -16,7 +16,6 @@ export async function UpdateCommands(appId, commands) {
             deletedCommands.forEach(deletedCommand => DeleteCommand(appId, deletedCommand.id))
         }
 
-
         // Update commands
         commands.forEach(command => {
 
@@ -38,6 +37,7 @@ export async function UpdateCommands(appId, commands) {
 
 // Retrieve Existing Global Commands
 async function RetrieveGlobalCommands(appId) {
+    
     // API endpoint to retrieve commands
     const endpoint = new GlobalApplicationEndpoint(appId)
 
@@ -84,6 +84,7 @@ export async function DeleteCommand(appId, commandId) {
 
 // Summon User
 export async function MessageCommand(channelId, message) {
+
     //  API endpoint to create a follow-up message
     const endpoint = new ChannelMessageEndpoint(channelId)
     const channelMessageEndpoint = endpoint.endpoint
